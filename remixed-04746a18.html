@@ -1,29 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWlvenh5d2Fib25xeWhwcmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMTg5MjksImV4cCI6MjA5Nzc5NDkyOX0.-DB1-XtUdNozjJPjfdqJXYrVL_3vPLRSefMz4is_QZc";
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dorantes Oloughlin PI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // 🔒 CANDADO DE CONTRASEÑA
+        const contrasenaCorrecta = "PiDoa2026."; // 
+        const intentoUsuario = prompt("Por favor, introduce la contraseña para acceder al sistema:");
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        if (intentoUsuario !== contrasenaCorrecta) {
+            alert("Contraseña incorrecta. Acceso denegado.");
+            window.stop(); // Detiene por completo la carga de la página
+            document.documentElement.innerHTML = "<h1 style='text-align:center; margin-top:100px; font-family:sans-serif;'>Acceso Denegado</h1>";
+        }
+    </script>
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWlvenh5d2Fib25xeWhwcmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMTg5MjksImV4cCI6MjA5Nzc5NDkyOX0.-DB1-XtUdNozjJPjfdqJXYrVL_3vPLRSefMz4is_QZc";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 🔒 AQUÍ PEGAS EL CANDADO DE CONTRASEÑA
-const contrasenaCorrecta = "PiDoa2026."; //
-const intentoUsuario = prompt("Por favor, introduce la contraseña para acceder al sistema:");
-
-if (intentoUsuario !== contrasenaCorrecta) {
-    alert("Contraseña incorrecta. Acceso denegado.");
-    document.body.innerHTML = "<h1 style='text-align:center; margin-top:100px; font-family:sans-serif;'>Acceso Denegado</h1>";
-    window.stop(); 
-}
-// 🔒 TERMINA EL CANDADO
-
-async function cargarTramites() {
-    // ... todo tu código de abajo sigue exactamente igual
-async function cargarTramites() {
+        async function cargarTramites() {
   const { data, error } = await supabase
     .from('tramites')
     .select('*')
