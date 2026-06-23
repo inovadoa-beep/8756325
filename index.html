@@ -2040,66 +2040,221 @@ function openAuditModal(id){
 // ══════════════════════════════════════
 // MODAL SAVE
 // ══════════════════════════════════════
-function saveProspecto(){
-  const marca=document.getElementById('f-marca').value.trim();if(!marca)return;
-  const obj={marca,titular:document.getElementById('f-titular').value.trim(),clase:document.getElementById('f-clase').value.trim(),descClase:document.getElementById('f-desc-clase').value.trim(),tipoMarca:document.getElementById('f-tipomarca').value,vence:document.getElementById('f-vence').value,canal:document.getElementById('f-canal').value,contacto:document.getElementById('f-contacto').value,estado:document.getElementById('f-estado-m').value,tramite:document.getElementById('f-tramite').value,limite:document.getElementById('f-limite').value,clienteId:document.getElementById('f-cliente-link').value||'',notas:document.getElementById('f-notas').value.trim()};
-  let registro,esNuevo=false;
-  if(editId){const i=data.findIndex(r=>r.id===editId);if(i>-1){data[i]={...data[i],...obj};registro=data[i];}}
-  else{registro={id:nextId++,...obj};data.unshift(registro);esNuevo=true;}
-  closeM('modal-prosp');render();showToast('Prospecto guardado',marca,'ok');
-  guardarRegistro('prospecto',registro,esNuevo).then(()=>{mostrarIndicadorGuardado();render();});
+async function saveProspecto() {
+    const marca = document.getElementById('prosp-marca').value.trim();
+    if (!marca) return alert('La marca es obligatoria');
+
+    const nuevoProspecto = {
+        nombre_marca: marca,
+        estado_comercial: document.getElementById('prosp-estado').value,
+        contacto: document.getElementById('prosp-contacto').value,
+        telefono: document.getElementById('prosp-tel').value,
+        correo: document.getElementById('prosp-correo').value,
+        notas: document.getElementById('prosp-obs').value
+    };
+
+    // Inserta directo en la tabla 'tramites' o 'prospectos' según tu esquema
+    const exito = await insertarEnSupabase('tramites', nuevoProspecto);
+    if (exito) {
+        showToast('Prospecto guardado en la nube', marca, 'ok');
+        closeM('modal-prosp');
+        cargarTramites(); // Recarga los datos desde Supabase
+    }
 }
-function saveCliente(){
-  const nombre=document.getElementById('fc-nombre').value.trim();if(!nombre)return;
-  const curp=(document.getElementById('fc-curp').value||'').trim().toUpperCase();
-  const obj={nombre,rfc:document.getElementById('fc-rfc').value.trim(),curp,telefono:document.getElementById('fc-telefono').value.trim(),correo:document.getElementById('fc-correo').value.trim(),domicilio:document.getElementById('fc-domicilio').value.trim(),contacto:document.getElementById('fc-contacto').value.trim(),cargo:document.getElementById('fc-cargo').value.trim(),regimen:document.getElementById('fc-regimen').value,tipo:document.getElementById('fc-tipo').value,notas:document.getElementById('fc-notas').value.trim()};
-  let registro,esNuevo=false;
-  if(editCliId){const i=clientes.findIndex(c=>c.id===editCliId);if(i>-1){clientes[i]={...clientes[i],...obj};registro=clientes[i];}}
-  else{registro={id:nextCliId++,...obj};clientes.unshift(registro);esNuevo=true;}
-  closeM('modal-cli');renderClientes();renderDashboard();showToast('Cliente guardado',nombre,'ok');
-  guardarRegistro('cliente',registro,esNuevo).then(()=>{mostrarIndicadorGuardado();renderClientes();});
+async function saveClient() {
+    const nombre = document.getElementById('cli-nombre').value.trim();
+    if (!nombre) return alert('El nombre es obligatorio');
+
+    const nuevoCliente = {
+        nombre: nombre,
+        rfc: document.getElementById('cli-rfc').value.trim(),
+        telefono: document.getElementById('cli-tel').value.trim(),
+        correo: document.getElementById('cli-correo').value.trim(),
+        domicilio: document.getElementById('cli-dom').value.trim(),
+        notas: document.getElementById('cli-obs').value.trim()
+    };
+
+    const exito = await insertarEnSupabase('clientes', nuevoCliente);
+    if (exito) {
+        showToast('Cliente guardado en la nube', nombre, 'ok');
+        closeM('modal-cliente');
+        cargarClientes(); // Recarga los datos desde Supabase
+    }
 }
-function saveHistorial(){
-  const pid=parseInt(document.getElementById('fh-prosp').value);if(!pid)return;
-  const tram=document.getElementById('fh-tramite').value;if(!tram)return;
-  const nextT=document.getElementById('fh-next-tramite').value;const nextF=document.getElementById('fh-next-fecha').value;
-  const obj={prospId:pid,tipoMarca:document.getElementById('fh-tipomarca').value,tramite:tram,fecha:document.getElementById('fh-fecha').value,resultado:document.getElementById('fh-resultado').value,resp:document.getElementById('fh-resp').value.trim(),formaCobro:document.getElementById('fh-forma-cobro').value,monto:parseFloat(document.getElementById('fh-monto').value)||0,estadoPago:document.getElementById('fh-estado-pago').value,cobroNotas:document.getElementById('fh-cobro-notas').value.trim(),impiRespFecha:document.getElementById('fh-impi-fecha').value,impiRes:document.getElementById('fh-impi-res').value,impiNotas:document.getElementById('fh-impi-notas').value.trim(),notas:document.getElementById('fh-notas').value.trim(),nextTramite:nextT,nextFecha:nextF};
-  let registro,esNuevo=false;
-  if(editHId){const i=historial.findIndex(h=>h.id===editHId);if(i>-1){historial[i]={...historial[i],...obj};registro=historial[i];}}
-  else{registro={id:nextHId++,...obj};historial.unshift(registro);esNuevo=true;}
-  const r=data.find(r=>r.id===pid);
-  if(r&&nextT&&nextF){r.tramite=nextT;r.limite=nextF;guardarRegistro('prospecto',r,false);}
-  document.getElementById('fh-prosp').disabled=false;
-  closeM('modal-hist');render();renderHistorial();renderCobros();
-  showToast('Trámite registrado',tram,'ok');
-  guardarRegistro('historial',registro,esNuevo).then(()=>{mostrarIndicadorGuardado();renderHistorial();renderCobros();});
+function saveHistorial() {
+    const pid = parseInt(document.getElementById('fh-prosp').value);
+    if (!pid) return;
+    const tram = document.getElementById('fh-tramite').value;
+    if (!tram) return;
+    
+    const nextT = document.getElementById('fh-next-tramite').value;
+    const nextF = document.getElementById('fh-next-fecha').value;
+
+    const obj = {
+        prospId: pid,
+        tipoMarca: document.getElementById('fh-tipomarca').value,
+        tramite: tram,
+        fecha: document.getElementById('fh-fecha').value,
+        resultado: document.getElementById('fh-resultado').value,
+        resp: document.getElementById('fh-resp').value.trim(),
+        formaCobro: document.getElementById('fh-forma-cobro').value,
+        monto: parseFloat(document.getElementById('fh-monto').value) || 0,
+        estadoPago: document.getElementById('fh-estado-pago').value,
+        cobroNotas: document.getElementById('fh-cobro-notas').value.trim(),
+        impiRespFecha: document.getElementById('fh-impi-fecha').value,
+        impiRes: document.getElementById('fh-impi-res').value,
+        impiNotas: document.getElementById('fh-impi-notas').value.trim(),
+        notas: document.getElementById('fh-notas').value.trim(),
+        nextTramite: nextT,
+        nextFecha: nextF
+    };
+
+    let registro, esNuevo = false;
+    if (editHId) {
+        const i = historial.findIndex(h => h.id === editHId);
+        if (i > -1) {
+            historial[i] = { ...historial[i], ...obj };
+            registro = historial[i];
+        }
+    } else {
+        registro = { id: nextHId++, ...obj };
+        historial.unshift(registro);
+        esNuevo = true;
+    }
+
+    const r = data.find(r => r.id === pid);
+    if (r && nextT && nextF) {
+        r.tramite = nextT;
+        r.limite = nextF;
+        guardarRegistro('prospecto', r, false);
+    }
+
+    document.getElementById('fh-prosp').disabled = false;
+    closeM('modal-hist');
+    render();
+    renderHistorial();
+    renderCobros();
+    showToast('Trámite registrado', tram, 'ok');
+
+    // Cambiado a la función que conecta de forma segura
+    guardarRegistro('historial', registro, esNuevo).then(() => {
+        mostrarIndicadorGuardado();
+        renderHistorial();
+        renderCobros();
+    }).catch(err => console.error("Error al sincronizar historial:", err));
 }
-function saveTarea(){
-  const titulo=document.getElementById('ft-titulo').value.trim();if(!titulo)return;
-  const obj={titulo,prospId:parseInt(document.getElementById('ft-prosp').value)||'',fecha:document.getElementById('ft-fecha').value,prio:document.getElementById('ft-prio').value,resp:document.getElementById('ft-resp').value.trim(),status:document.getElementById('ft-status').value,notas:document.getElementById('ft-notas').value.trim(),next:document.getElementById('ft-next').value.trim()};
-  let registro,esNuevo=false;
-  if(editTId){const i=tareas.findIndex(t=>t.id===editTId);if(i>-1){tareas[i]={...tareas[i],...obj};registro=tareas[i];}}
-  else{registro={id:nextTId++,...obj};tareas.unshift(registro);esNuevo=true;}
-  closeM('modal-tarea');renderTareas();renderDashboard();showToast('Tarea guardada',titulo,'ok');
-  guardarRegistro('tarea',registro,esNuevo).then(()=>{mostrarIndicadorGuardado();renderTareas();});
+
+function saveTarea() {
+    const titulo = document.getElementById('ft-titulo').value.trim();
+    if (!titulo) return;
+
+    const obj = {
+        titulo,
+        prospId: parseInt(document.getElementById('ft-prosp').value) || '',
+        fecha: document.getElementById('ft-fecha').value,
+        prio: document.getElementById('ft-prio').value,
+        resp: document.getElementById('ft-resp').value.trim(),
+        status: document.getElementById('ft-status').value,
+        notas: document.getElementById('ft-notas').value.trim(),
+        next: document.getElementById('ft-next').value.trim()
+    };
+
+    let registro, esNuevo = false;
+    if (editTId) {
+        const i = tareas.findIndex(t => t.id === editTId);
+        if (i > -1) {
+            tareas[i] = { ...tareas[i], ...obj };
+            registro = tareas[i];
+        }
+    } else {
+        registro = { id: nextTId++, ...obj };
+        tareas.unshift(registro);
+        esNuevo = true;
+    }
+
+    closeM('modal-tarea');
+    renderTareas();
+    renderDashboard();
+    showToast('Tarea guardada', titulo, 'ok');
+
+    guardarRegistro('tarea', registro, esNuevo).then(() => {
+        mostrarIndicadorGuardado();
+        renderTareas();
+    }).catch(err => console.error("Error al sincronizar tarea:", err));
 }
-function savePipeline(){
-  const pid=parseInt(document.getElementById('fp-prosp').value)||'';
-  const obj={prospId:pid,stage:document.getElementById('fp-stage').value,prob:document.getElementById('fp-prob').value,valor:document.getElementById('fp-valor').value,ultContacto:document.getElementById('fp-ult-contacto').value,resp:document.getElementById('fp-resp').value.trim(),notas:document.getElementById('fp-notas').value.trim()};
-  let registro,esNuevo=false;
-  if(editPId){const i=pipeline.findIndex(p=>p.id===editPId);if(i>-1){pipeline[i]={...pipeline[i],...obj};registro=pipeline[i];}}
-  else{registro={id:nextPId++,...obj};pipeline.unshift(registro);esNuevo=true;}
-  closeM('modal-pipe');renderPipeline();renderDashboard();showToast('Oportunidad guardada','','ok');
-  guardarRegistro('pipeline',registro,esNuevo).then(()=>{mostrarIndicadorGuardado();renderPipeline();});
+
+function savePipeline() {
+    const pid = parseInt(document.getElementById('fp-prosp').value) || '';
+    const obj = {
+        prospId: pid,
+        stage: document.getElementById('fp-stage').value,
+        prob: document.getElementById('fp-prob').value,
+        valor: document.getElementById('fp-valor').value,
+        ultContacto: document.getElementById('fp-ult-contacto').value,
+        resp: document.getElementById('fp-resp').value.trim(),
+        notas: document.getElementById('fp-notas').value.trim()
+    };
+
+    let registro, esNuevo = false;
+    if (editPId) {
+        const i = pipeline.findIndex(p => p.id === editPId);
+        if (i > -1) {
+            pipeline[i] = { ...pipeline[i], ...obj };
+            registro = pipeline[i];
+        }
+    } else {
+        registro = { id: nextPId++, ...obj };
+        pipeline.unshift(registro);
+        esNuevo = true;
+    }
+
+    closeM('modal-pipe');
+    renderPipeline();
+    renderDashboard();
+    showToast('Oportunidad guardada', '', 'ok');
+
+    // Cambiado para usar el canal de guardado seguro y evitar el error de caché en esquema de Supabase
+    guardarRegistro('pipeline', registro, esNuevo).then(() => {
+        mostrarIndicadorGuardado();
+        renderPipeline();
+    }).catch(err => console.error("Error al sincronizar pipeline:", err));
 }
-function saveAuditoria(){
-  const pid=parseInt(document.getElementById('fa-prosp').value);if(!pid)return;
-  const obj={prospId:pid,fecha:document.getElementById('fa-fecha').value,resp:document.getElementById('fa-resp').value.trim(),status:document.getElementById('fa-status').value,obs:document.getElementById('fa-obs').value.trim(),acciones:document.getElementById('fa-acciones').value.trim()};
-  let registro,esNuevo=false;
-  if(editAId){const i=auditorias.findIndex(a=>a.id===editAId);if(i>-1){auditorias[i]={...auditorias[i],...obj};registro=auditorias[i];}}
-  else{registro={id:nextAId++,...obj,checks:{}};auditorias.unshift(registro);esNuevo=true;}
-  closeM('modal-audit');renderAuditorias();renderDashboard();showToast('Auditoría guardada','','ok');
-  guardarRegistro('auditoria',registro,esNuevo).then(()=>{mostrarIndicadorGuardado();renderAuditorias();});
+
+function saveAuditoria() {
+    const pid = parseInt(document.getElementById('fa-prosp').value);
+    if (!pid) return;
+
+    const obj = {
+        prospId: pid,
+        fecha: document.getElementById('fa-fecha').value,
+        resp: document.getElementById('fa-resp').value.trim(),
+        status: document.getElementById('fa-status').value,
+        obs: document.getElementById('fa-obs').value.trim(),
+        acciones: document.getElementById('fa-acciones').value.trim()
+    };
+
+    let registro, esNuevo = false;
+    if (editAId) {
+        const i = auditorias.findIndex(a => a.id === editAId);
+        if (i > -1) {
+            auditorias[i] = { ...auditorias[i], ...obj };
+            registro = auditorias[i];
+        }
+    } else {
+        registro = { id: nextAId++, ...obj, checks: {} };
+        auditorias.unshift(registro);
+        esNuevo = true;
+    }
+
+    closeM('modal-audit');
+    renderAuditorias();
+    renderDashboard();
+    showToast('Auditoría guardada', '', 'ok');
+
+    guardarRegistro('auditoria', registro, esNuevo).then(() => {
+        mostrarIndicadorGuardado();
+        renderAuditorias();
+    }).catch(err => console.error("Error al sincronizar auditoría:", err));
 }
 
 // ══════════════════════════════════════
