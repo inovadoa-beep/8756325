@@ -1,6 +1,39 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWlvenh5d2Fib25xeWhwcmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMTg5MjksImV4cCI6MjA5Nzc5NDkyOX0.-DB1-XtUdNozjJPjfdqJXYrVL_3vPLRSefMz4is_QZc";
+
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function cargarTramites() {
+  const { data, error } = await supabase
+    .from('tramites')
+    .select('*')
+    .order('fecha_vencimiento', { ascending: true });
+
+  if (error) {
+    console.error("Error cargando trámites:", error);
+    return;
+  }
+  
+  // Aquí renderizas los datos en tu UI (reemplazando tu lógica anterior)
+  renderizarAlertas(data); 
+}
+async function guardarNuevoProspecto(nombre, estado) {
+  const { data, error } = await supabase
+    .from('prospectos')
+    .insert([
+      { nombre_marca: nombre, estado_comercial: estado }
+    ]);
+
+  if (error) {
+    alert("Error al guardar en Supabase: " + error.message);
+  } else {
+    // Recargar la interfaz para ver los cambios
+    cargarTramites(); 
+  }
+}
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dorantes Oloughlin PI</title>
