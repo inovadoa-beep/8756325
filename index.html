@@ -8,16 +8,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dorantes Oloughlin PI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-   <script>
-        // CANDADO DE CONTRASEÑA
-        const contrasenaCorrecta = "PiDoa2026."; 
-        const intentoUsuario = prompt("Por favor, introduce la contraseña para acceder al sistema:");
+  <style>
+  #login-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #0d0e12; /* Fondo oscuro profundo */
+    display: flex; justify-content: center; align-items: center;
+    z-index: 999999; /* Asegura que tape absolutamente todo */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  .login-card {
+    background: #16181f;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 1px solid #232632;
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+  }
+  .login-card h2 {
+    color: #ffffff;
+    margin-bottom: 8px;
+    font-size: 24px;
+  }
+  .login-card p {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .login-card input {
+    width: 100%;
+    padding: 12px;
+    background: #0d0e12;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 16px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .login-card input:focus {
+    border-color: #3b82f6; /* Brillo azul al seleccionar */
+  }
+  .login-card button {
+    width: 100%;
+    padding: 12px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .login-card button:hover {
+    background: #2563eb;
+  }
+  .login-error {
+    color: #ef4444;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+</style>
 
-        if (intentoUsuario !== contrasenaCorrecta) {
-            alert("Contraseña incorrecta. Acceso denegado.");
-            window.stop(); // Detiene por completo la carga de la página
-        }
-    </script>
+<div id="login-overlay">
+  <div class="login-card">
+    <h2>Sistema PI</h2>
+    <p>Dorantes Oloughlin</p>
+    <input type="password" id="login-pass" placeholder="Introduce la contraseña" onkeypress="if(event.key === 'Enter') verificarAcceso()">
+    <button onclick="verificarAcceso()">Ingresar</button>
+    <div id="login-error-msg" class="login-error">Contraseña incorrecta. Intenta de nuevo.</div>
+  </div>
+</div>
+
+<script>
+  function verificarAcceso() {
+    const contrasenaCorrecta = "PiDoa2026.";
+    const inputUsuario = document.getElementById("login-pass").value;
+    const errorMsg = document.getElementById("login-error-msg");
+
+    if (inputUsuario === contrasenaCorrecta) {
+      // Si es correcta, desvanece y elimina la pantalla de login
+      const overlay = document.getElementById("login-overlay");
+      overlay.style.transition = "opacity 0.4s ease";
+      overlay.style.opacity = "0";
+      setTimeout(() => overlay.remove(), 400);
+    } else {
+      // Si es incorrecta, muestra el mensaje de error en rojo
+      errorMsg.style.display = "block";
+      document.getElementById("login-pass").value = "";
+      document.getElementById("login-pass").focus();
+    }
+  }
+</script>
+    
   <script>
   // Configuración de Supabase
   const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
