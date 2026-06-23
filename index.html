@@ -18,26 +18,46 @@
             window.stop(); // Detiene por completo la carga de la página
         }
     </script>
-    <script>
-        // Configuración de Supabase
-        const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWlvenh5d2Fib25xeWhwcmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMTg5MjksImV4cCI6MjA5Nzc5NDkyOX0.-DB1-XtUdNozjJPjfdqJXYrVL_3vPLRSefMz4is_QZc";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+   <script>
+  // Configuración de Supabase
+  const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWlvenh5d2Fib25xeWhwcmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMTg5MjksImV4cCI6MjA5Nzc5NDkyOX0.-DB1-XtUdNozjJPjfdqJXYrVL_3vPLRSefMz4is_QZc";
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function cargarTramites() {
-  const { data, error } = await supabase
-    .from('tramites')
-    .select('*')
-    .order('fecha_vencimiento', { ascending: true });
+  // Función global para guardar CUALQUIER tabla desde tus formularios
+  async function guardarEnSupabase(nombreTabla, datosObjeto) {
+    const { data, error } = await supabase
+      .from(nombreTabla)
+      .insert([datosObjeto]);
 
-  if (error) {
-    console.error("Error cargando trámites:", error);
-    return;
+    if (error) {
+      console.error(`Error al guardar en ${nombreTabla}:`, error);
+      alert("Hubo un problema al guardar los datos: " + error.message);
+      return null;
+    }
+    
+    // Mostrar indicador de guardado arriba en tu cabecera
+    const ind = document.getElementById('save-indicator');
+    if(ind) {
+      ind.classList.add('show');
+      setTimeout(() => ind.classList.remove('show'), 2000);
+    }
+    
+    return data;
   }
-  
-  // Aquí renderizas los datos en tu UI (reemplazando tu lógica anterior)
-  renderizarAlertas(data); 
-}
+
+  // Cargar datos automáticamente al iniciar la página
+  async function descargarDatosDeSupabase(nombreTabla) {
+    const { data, error } = await supabase
+      .from(nombreTabla)
+      .select('*');
+    if (error) {
+      console.error(`Error al cargar ${nombreTabla}:`, error);
+      return [];
+    }
+    return data;
+  }
+</script>
 async function guardarNuevoProspecto(nombre, estado) {
   const { data, error } = await supabase
     .from('prospectos')
