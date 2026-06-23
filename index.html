@@ -18,44 +18,29 @@
             window.stop(); // Detiene por completo la carga de la página
         }
     </script>
-   <script>
+  <script>
   // Configuración de Supabase
   const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWlvenh5d2Fib25xeWhwcmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMTg5MjksImV4cCI6MjA5Nzc5NDkyOX0.-DB1-XtUdNozjJPjfdqJXYrVL_3vPLRSefMz4is_QZc";
   const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Función global para guardar CUALQUIER tabla desde tus formularios
-  async function guardarEnSupabase(nombreTabla, datosObjeto) {
-    const { data, error } = await supabase
-      .from(nombreTabla)
-      .insert([datosObjeto]);
-
+  // Funciones Globales de Conexión
+  async function descargarDatosDeSupabase(tabla) {
+    const { data, error } = await supabase.from(tabla).select('*');
     if (error) {
-      console.error(`Error al guardar en ${nombreTabla}:`, error);
-      alert("Hubo un problema al guardar los datos: " + error.message);
-      return null;
-    }
-    
-    // Mostrar indicador de guardado arriba en tu cabecera
-    const ind = document.getElementById('save-indicator');
-    if(ind) {
-      ind.classList.add('show');
-      setTimeout(() => ind.classList.remove('show'), 2000);
-    }
-    
-    return data;
-  }
-
-  // Cargar datos automáticamente al iniciar la página
-  async function descargarDatosDeSupabase(nombreTabla) {
-    const { data, error } = await supabase
-      .from(nombreTabla)
-      .select('*');
-    if (error) {
-      console.error(`Error al cargar ${nombreTabla}:`, error);
+      console.error("Error al cargar " + tabla, error);
       return [];
     }
     return data;
+  }
+
+  async function guardarEnSupabase(tabla, objetoDatos) {
+    const { data, error } = await supabase.from(tabla).insert([objetoDatos]);
+    if (error) {
+      alert("Error al guardar en Supabase: " + error.message);
+      return false;
+    }
+    return true;
   }
 </script>
 async function guardarNuevoProspecto(nombre, estado) {
@@ -1811,6 +1796,109 @@ function openAuditModal(id){
 // ══════════════════════════════════════
 // MODAL SAVE
 // ══════════════════════════════════════
+// ══════════════════════════════════════
+// CONEXIÓN GLOBAL A SUPABASE (TODOS LOS DATOS)
+// ══════════════════════════════════════
+async function persist() {
+    console.log("Sincronizando cambios con Supabase...");
+    
+    // 1. Sincronizar Trámites / Prospectos
+    if (typeof data !== 'undefined' && data.length > 0) {
+        for (let p of data) {
+            if (!p.id_sincronizado) {
+                let exito = await guardarEnSupabase('tramites', {
+                    nombre_marca: p.marca || '',
+                    titular: p.titular || '',
+                    clase: p.clase || '',
+                    tipo_marca: p.tipoMarca || '',
+                    fecha_vencimiento: p.vence || null,
+                    estado_comercial: p.estado || 'Nuevo',
+                    notas: p.notas || ''
+                });
+                if (exito) p.id_sincronizado = true;
+            }
+        }
+    }
+
+    // 2. Sincronizar Clientes
+    if (typeof clientes !== 'undefined' && clientes.length > 0) {
+        for (let c of clientes) {
+            if (!c.id_sincronizado) {
+                let exito = await guardarEnSupabase('clientes', {
+                    nombre: c.nombre || '',
+                    rfc: c.rfc || '',
+                    telefono: c.telefono || '',
+                    correo: c.correo || '',
+                    domicilio: c.domicilio || '',
+                    notas: c.notas || ''
+                });
+                if (exito) c.id_sincronizado = true;
+            }
+        }
+    }
+
+    // 3. Sincronizar Historial de Trámites
+    if (typeof historial !== 'undefined' && historial.length > 0) {
+        for (let h of historial) {
+            if (!h.id_sincronizado) {
+                let exito = await guardarEnSupabase('historial', {
+                    tramite: h.tramite || '',
+                    fecha: h.fecha || null,
+                    resultado: h.resultado || '',
+                    monto: h.monto || 0,
+                    estado_pago: h.estadoPago || 'Pendiente'
+                });
+                if (exito) h.id_sincronizado = true;
+            }
+        }
+    }
+
+    // 4. Sincronizar Tareas
+    if (typeof tareas !== 'undefined' && tareas.length > 0) {
+        for (let t of tareas) {
+            if (!t.id_sincronizado) {
+                let exito = await guardarEnSupabase('tareas', {
+                    titulo: t.titulo || '',
+                    fecha_limite: t.fecha || null,
+                    prioridad: t.prio || 'Media',
+                    responsable: t.resp || '',
+                    estatus: t.status || 'Pendiente'
+                });
+                if (exito) t.id_sincronizado = true;
+            }
+        }
+    }
+
+    // 5. Sincronizar Pipeline (Oportunidades)
+    if (typeof pipeline !== 'undefined' && pipeline.length > 0) {
+        for (let pipe of pipeline) {
+            if (!pipe.id_sincronizado) {
+                let exito = await guardarEnSupabase('pipeline', {
+                    etapa: pipe.stage || 'Nuevo',
+                    probabilidad: pipe.prob || '',
+                    valor: pipe.valor || '',
+                    responsable: pipe.resp || ''
+                });
+                if (exito) pipe.id_sincronizado = true;
+            }
+        }
+    }
+
+    // 6. Sincronizar Auditorías
+    if (typeof auditorias !== 'undefined' && auditorias.length > 0) {
+        for (let a of auditorias) {
+            if (!a.id_sincronizado) {
+                let exito = await guardarEnSupabase('auditorias', {
+                    fecha: a.fecha || null,
+                    responsable: a.resp || '',
+                    estatus: a.status || 'Pendiente',
+                    observaciones: a.obs || ''
+                });
+                if (exito) a.id_sincronizado = true;
+            }
+        }
+    }
+}
 function saveProspecto(){
   const marca=document.getElementById('f-marca').value.trim();if(!marca)return;
   const obj={marca,titular:document.getElementById('f-titular').value.trim(),clase:document.getElementById('f-clase').value.trim(),descClase:document.getElementById('f-desc-clase').value.trim(),tipoMarca:document.getElementById('f-tipomarca').value,vence:document.getElementById('f-vence').value,canal:document.getElementById('f-canal').value,contacto:document.getElementById('f-contacto').value,estado:document.getElementById('f-estado-m').value,tramite:document.getElementById('f-tramite').value,limite:document.getElementById('f-limite').value,clienteId:document.getElementById('f-cliente-link').value||'',notas:document.getElementById('f-notas').value.trim()};
