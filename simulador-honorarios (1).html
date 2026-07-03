@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Last-Modified" content="0">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Honorarios · Dorantes Oloughlin PI</title>
+<link rel="icon" type="image/jpeg" href="DOPI.jpg">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#F8F9FB;--bg2:#FFFFFF;--bg3:#F2F4F7;--bg4:#E8EBF0;--bg5:#DDE2EA;
+  --border:#E2E6ED;--border2:#C8CED8;--border3:#B0BAC8;
+  --text:#1A1D23;--text2:#4A5568;--text3:#8A95A3;--text4:#B0BAC8;
+  --accent:#1E40AF;--accent2:#2563EB;--accent3:#3B82F6;--accent-bg:#EFF6FF;--accent-border:#BFDBFE;
+  --green:#059669;--green2:#10B981;--green-bg:#ECFDF5;--green-border:#A7F3D0;
+  --amber:#D97706;--amber2:#F59E0B;--amber-bg:#FFFBEB;--amber-border:#FDE68A;
+  --red:#DC2626;--red2:#EF4444;--red-bg:#FEF2F2;--red-border:#FECACA;
+  --purple:#7C3AED;--purple2:#8B5CF6;--purple-bg:#F5F3FF;--purple-border:#DDD6FE;
+  --teal:#0891B2;--teal2:#06B6D4;--teal-bg:#ECFEFF;--teal-border:#A5F3FC;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --r:6px;--rl:10px;--rxl:14px;
+}
+.dark{
+  --bg:#0B1329;--bg2:#111C38;--bg3:#111C38;--bg4:#162247;--bg5:#1B2B52;
+  --border:#1B2B52;--border2:#26396B;--border3:#324780;
+  --text:#FFFFFF;--text2:#94A3B8;--text3:#7587A0;--text4:#56698A;
+  --accent:#3B82F6;--accent2:#60A5FA;--accent3:#93C5FD;--accent-bg:#13234A;--accent-border:#1E3A8A;
+  --green:#10B981;--green2:#34D399;--green-bg:#082E22;--green-border:#065F46;
+  --amber:#F5B743;--amber2:#FCD34D;--amber-bg:#2A2107;--amber-border:#78350F;
+  --red:#EF4444;--red2:#F87171;--red-bg:#2A0E0E;--red-border:#7F1D1D;
+  --purple:#8B5CF6;--purple2:#A78BFA;--purple-bg:#1E1030;--purple-border:#4C1D95;
+  --teal:#4682B4;--teal2:#5EA0D6;--teal-bg:#0E2236;--teal-border:#0E4F5C;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--shadow-md:0 4px 14px rgba(0,0,0,.45);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:13px;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;transition:background .2s,color .2s;}
+
+/* ── LOGIN OVERLAY ── */
+#login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:#0d0e12;display:flex;justify-content:center;align-items:center;z-index:999999;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+.login-card{background:#16181f;padding:40px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid #232632;text-align:center;max-width:360px;width:90%;}
+.login-card h2{color:#fff;margin-bottom:8px;font-size:24px;}
+.login-card p{color:#64748b;font-size:14px;margin-bottom:24px;}
+.login-card input{width:100%;padding:12px;background:#0d0e12;border:1px solid #334155;border-radius:6px;color:#fff;font-size:16px;box-sizing:border-box;margin-bottom:16px;text-align:center;outline:none;transition:border-color .2s;}
+.login-card input:focus{border-color:#3b82f6;}
+.login-card button{width:100%;padding:12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer;transition:background .2s;}
+.login-card button:hover{background:#2563eb;}
+.login-error{color:#ef4444;font-size:13px;margin-top:12px;display:none;}
+
+/* ── LAYOUT ── */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:200;box-shadow:var(--shadow);}
+.logo-wrap{display:flex;align-items:center;gap:12px;}
+.logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--accent2),#4338CA);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(37,99,235,.3);flex-shrink:0;}
+.logo-mark svg{color:#fff;}
+.logo-text{display:flex;flex-direction:column;}
+.logo-name{font-size:14px;font-weight:700;color:var(--text);}
+.logo-sub{font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;}
+.hdr-btn{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;transition:all .15s;}
+.hdr-btn:hover{background:var(--bg4);color:var(--text);}
+main{max-width:920px;margin:0 auto;padding:24px;}
+.page-header{margin-bottom:18px;}
+.page-title{font-size:19px;font-weight:700;color:var(--text);}
+.page-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+
+.tools-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.tools-card h3{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:11px;font-weight:600;color:var(--text3);}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:640px){.calc-grid{grid-template-columns:1fr;}main{padding:14px;}}
+
+input[type=text],input[type=number],input[type=password]{height:36px;padding:0 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:border .15s,box-shadow .15s;width:100%;}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--accent3);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+select{height:36px;padding:0 28px 0 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%238A95A3' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;width:100%;}
+select:focus{border-color:var(--accent3);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s;box-shadow:var(--shadow);}
+.btn:hover{background:var(--bg3);border-color:var(--border2);color:var(--text);}
+.btn-sm{height:30px;padding:0 10px;font-size:11px;}
+.btn-primary{background:var(--accent2);color:#fff;border-color:var(--accent2);}
+.btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-green{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.btn-green:hover{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-amber{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border);}
+.btn-amber:hover{background:var(--amber);color:#fff;}
+.btn-red{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+.btn-red:hover{background:var(--red);color:#fff;}
+
+.sim-result-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-top:12px;}
+.sim-result-card h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:10px;}
+.sim-fee-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);}
+.sim-fee-row:last-child{border-bottom:none;font-weight:700;font-size:13px;color:var(--accent2);}
+
+.tarifa-row{display:grid;grid-template-columns:1fr 110px 110px auto;gap:8px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;}
+.tarifa-row:last-child{border-bottom:none;}
+.tarifa-hdr{display:grid;grid-template-columns:1fr 110px 110px auto;gap:8px;padding:6px 10px;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;background:var(--bg3);border-bottom:1px solid var(--border);}
+.tarifa-input{height:30px;padding:0 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;outline:none;width:100%;}
+.tarifa-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(59,130,246,.1);}
+@media(max-width:640px){.tarifa-row,.tarifa-hdr{grid-template-columns:1fr;}}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;font-size:12px;font-weight:600;color:var(--green);box-shadow:var(--shadow-md);opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;z-index:5000;}
+.toast.show{opacity:1;transform:translateY(0);}
+.hint{font-size:10px;color:var(--text3);margin-top:8px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-card">
+    <h2>Simulador de Honorarios</h2>
+    <p>Acceso restringido · Dorantes Oloughlin PI</p>
+    <input type="password" id="login-pass" placeholder="Introduce la contraseña" onkeypress="if(event.key==='Enter') verificarAcceso()">
+    <button onclick="verificarAcceso()">Ingresar</button>
+    <div id="login-error-msg" class="login-error">Contraseña incorrecta. Intenta de nuevo.</div>
+  </div>
+</div>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-width="2"/></svg></div>
+    <div class="logo-text"><div class="logo-name">Simulador de Honorarios</div><div class="logo-sub">Dorantes Oloughlin PI</div></div>
+  </div>
+  <button class="hdr-btn" onclick="toggleDark()" title="Cambiar tema">
+    <svg id="icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+    <svg id="icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+</header>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">💰 Simulador de Honorarios</div>
+    <div class="page-sub">Calcula honorarios y derechos IMPI estimados · administra tus propios servicios y montos</div>
+  </div>
+
+  <!-- CALCULADORA -->
+  <div class="tools-card">
+    <h3>Calculadora</h3>
+    <div class="calc-grid">
+      <div class="form-group"><label>Tipo de servicio</label>
+        <select id="sim-tipo" onchange="simHonorarios()"></select>
+      </div>
+      <div class="form-group"><label>Número de clases adicionales</label><input type="number" id="sim-clases" value="0" min="0" max="20" oninput="simHonorarios()"></div>
+      <div class="form-group"><label>Descuento / Ajuste (%)</label><input type="number" id="sim-desc" value="0" min="0" max="100" oninput="simHonorarios()"></div>
+      <div class="form-group"><label>Tipo de cliente</label>
+        <select id="sim-cli-tipo" onchange="simHonorarios()">
+          <option value="normal">Persona física / empresa</option>
+          <option value="pyme">PyME (descuento 10%)</option>
+          <option value="recurrente">Cliente recurrente (15%)</option>
+        </select>
+      </div>
+    </div>
+    <div id="sim-result" style="display:none"></div>
+  </div>
+
+  <!-- EDITOR DE SERVICIOS -->
+  <div class="tools-card">
+    <h3>
+      <span style="flex:1">⚙ Servicios y montos</span>
+      <button class="btn btn-sm" id="btn-toggle-tarifas" onclick="toggleTarifasVisibles()"></button>
+      <button class="btn btn-sm btn-green" onclick="agregarServicio()">+ Agregar servicio</button>
+      <button class="btn btn-sm btn-red" onclick="resetTarifas()">↺ Restaurar default</button>
+    </h3>
+    <div id="tarifas-body">
+      <div class="tarifa-hdr"><span>Servicio</span><span>Honorarios (MXN)</span><span>Derechos IMPI (MXN)</span><span></span></div>
+      <div id="tarifas-rows"></div>
+      <div class="hint">Los cambios se guardan automáticamente y se sincronizan con la base de datos.</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Configuración de Supabase (mismo proyecto que el Sistema PI / index.html)
+  const SUPABASE_URL = "https://bgiiozxywabonqyhprjj.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaWlvenh5d2Fib25xeWhwcmpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMTg5MjksImV4cCI6MjA5Nzc5NDkyOX0.-DB1-XtUdNozjJPjfdqJXYrVL_3vPLRSefMz4is_QZc";
+  // OJO: el cliente se llama "sb" (no "supabase") para no tapar el objeto
+  // global que crea el script del CDN (window.supabase.createClient).
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Funciones Globales de Conexión (idénticas a las del Sistema PI)
+  async function descargarDeSupabase(tabla) {
+    const { data, error } = await sb.from(tabla).select('*');
+    if (error) {
+      console.error("Error al cargar " + tabla, error);
+      showToast('Error al cargar datos', tabla + ': ' + error.message);
+      return [];
+    }
+    return data;
+  }
+  async function insertarEnSupabase(tabla, objetoDatos) {
+    const { data, error } = await sb.from(tabla).insert([objetoDatos]).select().single();
+    if (error) {
+      console.error('Error al insertar en ' + tabla, error);
+      showToast('Error al guardar', tabla + ': ' + error.message);
+      return null;
+    }
+    return data;
+  }
+  async function actualizarEnSupabase(tabla, id, objetoDatos) {
+    const { error } = await sb.from(tabla).update(objetoDatos).eq('id', id);
+    if (error) {
+      console.error('Error al actualizar en ' + tabla, error);
+      showToast('Error al guardar', tabla + ': ' + error.message);
+      return false;
+    }
+    return true;
+  }
+  async function borrarEnSupabase(tabla, id) {
+    const { error } = await sb.from(tabla).delete().eq('id', id);
+    if (error) {
+      console.error('Error al borrar en ' + tabla, error);
+      showToast('Error al borrar', tabla + ': ' + error.message);
+      return false;
+    }
+    return true;
+  }
+</script>
+
+<script>
+/* ══════════ LOGIN ══════════ */
+function verificarAcceso(){
+  const contrasenaCorrecta="SociosDoa26.";
+  const inputUsuario=document.getElementById("login-pass").value;
+  const errorMsg=document.getElementById("login-error-msg");
+  if(inputUsuario===contrasenaCorrecta){
+    const overlay=document.getElementById("login-overlay");
+    overlay.style.transition="opacity 0.4s ease";
+    overlay.style.opacity="0";
+    setTimeout(()=>overlay.remove(),400);
+  } else {
+    errorMsg.style.display="block";
+    document.getElementById("login-pass").value="";
+    document.getElementById("login-pass").focus();
+  }
+}
+
+/* ══════════ TEMA ══════════ */
+let isDark=localStorage.getItem('dopi_theme')==='dark';
+function applyTheme(){
+  document.body.classList.toggle('dark',isDark);
+  document.getElementById('icon-dark').style.display=isDark?'none':'block';
+  document.getElementById('icon-light').style.display=isDark?'block':'none';
+}
+function toggleDark(){isDark=!isDark;applyTheme();localStorage.setItem('dopi_theme',isDark?'dark':'light');}
+applyTheme();
+
+/* ══════════ UTILS ══════════ */
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtMXN(n){return(n||0).toLocaleString('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});}
+function showToast(msg,detalle){const t=document.getElementById('toast');t.textContent=detalle?(msg+': '+detalle):msg;t.classList.add('show');clearTimeout(window._toastTimer);window._toastTimer=setTimeout(()=>t.classList.remove('show'),2600);}
+
+/* ══════════ DATOS DE SERVICIOS (persistidos en este navegador) ══════════ */
+const TARIFAS_DEFAULT=[
+  {id:'reg1',nombre:'Registro de marca (1 clase)',honorarios:5000,impi:3126.41},
+  {id:'reg_extra',nombre:'Clase adicional',honorarios:1800,impi:1200},
+  {id:'decl',nombre:'Declaración de uso',honorarios:3000,impi:1143.38},
+  {id:'renov_decl',nombre:'Renovación + Declaración',honorarios:8500,impi:4156.79},
+  {id:'busqueda',nombre:'Búsqueda marcaria',honorarios:3000,impi:0},
+  {id:'oposicion',nombre:'Oposición/Nulidad',honorarios:18000,impi:2500},
+  {id:'cesion',nombre:'Cesión de derechos',honorarios:6500,impi:1800},
+  {id:'licencia',nombre:'Contrato de licencia',honorarios:3000,impi:1800},
+];
+const TABLA_TARIFAS='tarifas_honorarios';
+let TARIFAS=[];
+let claseAdicionalId='';
+
+function uid(){return 's'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+// Trae las tarifas desde Supabase. Si la tabla está vacía (primera vez que
+// se usa el simulador con esta base de datos), siembra los valores de
+// fábrica en Supabase para que quede como punto de partida compartido.
+async function cargarTarifas(){
+  try{
+    const filas=await descargarDeSupabase(TABLA_TARIFAS);
+    if(filas && filas.length){
+      TARIFAS=filas.map(f=>({id:f.id,nombre:f.nombre,honorarios:Number(f.honorarios)||0,impi:Number(f.impi)||0}));
+      const clase=filas.find(f=>f.es_clase_adicional);
+      claseAdicionalId=clase?clase.id:(TARIFAS[0]?.id||'');
+    } else {
+      TARIFAS=TARIFAS_DEFAULT.map(t=>({id:uid(),nombre:t.nombre,honorarios:t.honorarios,impi:t.impi}));
+      const idxAdic=TARIFAS_DEFAULT.findIndex(t=>t.id==='reg_extra');
+      claseAdicionalId=idxAdic>-1?TARIFAS[idxAdic].id:(TARIFAS[0]?.id||'');
+      for(const t of TARIFAS) await guardarTarifaFila(t,true);
+    }
+  }catch(err){
+    console.error('Error al cargar tarifas desde Supabase', err);
+    showToast('Sin conexión','usando valores por defecto de forma local');
+    TARIFAS=JSON.parse(JSON.stringify(TARIFAS_DEFAULT));
+    claseAdicionalId='reg_extra';
+  }
+}
+
+// Guarda (insert o update) una fila de tarifa en Supabase.
+async function guardarTarifaFila(t,esNuevo){
+  try{
+    const payload={nombre:t.nombre,honorarios:t.honorarios,impi:t.impi,es_clase_adicional:t.id===claseAdicionalId};
+    if(esNuevo){
+      const fila=await insertarEnSupabase(TABLA_TARIFAS,payload);
+      if(fila) t.id=fila.id;
+      return !!fila;
+    } else {
+      return await actualizarEnSupabase(TABLA_TARIFAS,t.id,payload);
+    }
+  }catch(err){
+    console.warn('Sincronización fallida para tarifa, se quedó solo local.',err);
+    return false;
+  }
+}
+async function borrarTarifaFila(id){
+  return await borrarEnSupabase(TABLA_TARIFAS,id);
+}
+
+/* ══════════ RENDER SELECT + EDITOR ══════════ */
+function renderSelectServicios(){
+  const sel=document.getElementById('sim-tipo');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar —</option>'+
+    TARIFAS.map(t=>`<option value="${t.id}">${esc(t.nombre)}</option>`).join('');
+  if(TARIFAS.some(t=>t.id===prev)) sel.value=prev;
+}
+
+function renderTarifasRows(){
+  const cont=document.getElementById('tarifas-rows');
+  if(!TARIFAS.length){cont.innerHTML='<div style="padding:14px;font-size:12px;color:var(--text3)">No hay servicios. Agrega uno con el botón de arriba.</div>';return;}
+  cont.innerHTML=TARIFAS.map(t=>`
+    <div class="tarifa-row">
+      <input class="tarifa-input" type="text" value="${esc(t.nombre)}" onchange="editarServicio('${t.id}','nombre',this.value)">
+      <input class="tarifa-input" type="number" min="0" step="0.01" value="${t.honorarios}" onchange="editarServicio('${t.id}','honorarios',this.value)">
+      <input class="tarifa-input" type="number" min="0" step="0.01" value="${t.impi}" onchange="editarServicio('${t.id}','impi',this.value)">
+      <button class="btn btn-sm btn-red" title="Eliminar servicio" onclick="eliminarServicio('${t.id}')">✕</button>
+    </div>`).join('');
+}
+
+async function agregarServicio(){
+  const nuevo={id:uid(),nombre:'Nuevo servicio',honorarios:0,impi:0};
+  TARIFAS.push(nuevo);
+  renderTarifasRows();
+  renderSelectServicios();
+  showToast('Servicio agregado');
+  const exito=await guardarTarifaFila(nuevo,true);
+  if(exito){renderTarifasRows();renderSelectServicios();}
+}
+async function editarServicio(id,campo,valor){
+  const t=TARIFAS.find(t=>t.id===id);
+  if(!t)return;
+  t[campo]=(campo==='nombre')?valor:(parseFloat(valor)||0);
+  if(campo==='nombre') renderSelectServicios();
+  simHonorarios();
+  const exito=await guardarTarifaFila(t,false);
+  if(exito) showToast('Guardado');
+}
+async function eliminarServicio(id){
+  if(!confirm('¿Eliminar este servicio?'))return;
+  TARIFAS=TARIFAS.filter(t=>t.id!==id);
+  let reasignarClaseA=null;
+  if(claseAdicionalId===id){
+    claseAdicionalId=TARIFAS[0]?.id||'';
+    reasignarClaseA=TARIFAS[0]||null;
+  }
+  renderTarifasRows();
+  renderSelectServicios();
+  simHonorarios();
+  showToast('Servicio eliminado');
+  await borrarTarifaFila(id);
+  if(reasignarClaseA) await guardarTarifaFila(reasignarClaseA,false);
+}
+async function resetTarifas(){
+  if(!confirm('¿Restaurar los valores de fábrica? Se perderán tus cambios.'))return;
+  const idsAntiguos=TARIFAS.map(t=>t.id);
+  TARIFAS=TARIFAS_DEFAULT.map(t=>({id:uid(),nombre:t.nombre,honorarios:t.honorarios,impi:t.impi}));
+  const idxAdic=TARIFAS_DEFAULT.findIndex(t=>t.id==='reg_extra');
+  claseAdicionalId=idxAdic>-1?TARIFAS[idxAdic].id:(TARIFAS[0]?.id||'');
+  renderTarifasRows();
+  renderSelectServicios();
+  simHonorarios();
+  showToast('Tarifas restauradas');
+  for(const oldId of idsAntiguos) await borrarTarifaFila(oldId);
+  for(const t of TARIFAS) await guardarTarifaFila(t,true);
+  renderTarifasRows();
+  renderSelectServicios();
+}
+
+/* ══════════ CALCULADORA ══════════ */
+function simHonorarios(){
+  const tipo=document.getElementById('sim-tipo').value;
+  const clases=parseInt(document.getElementById('sim-clases').value)||0;
+  const descPct=parseFloat(document.getElementById('sim-desc').value)||0;
+  const cliTipo=document.getElementById('sim-cli-tipo').value;
+  const el=document.getElementById('sim-result');
+  if(!tipo){el.style.display='none';return;}
+  const base=TARIFAS.find(t=>t.id===tipo);
+  if(!base){el.style.display='none';return;}
+  el.style.display='block';
+  const claseAd=TARIFAS.find(t=>t.id===claseAdicionalId);
+  const claseHonor=claseAd?claseAd.honorarios:0;
+  const claseImpi=claseAd?claseAd.impi:0;
+  let honor=base.honorarios+clases*claseHonor;
+  const impi=base.impi+clases*claseImpi;
+  const cliDesc=cliTipo==='pyme'?10:cliTipo==='recurrente'?15:0;
+  const totalDesc=Math.min(descPct+cliDesc,50);
+  const descMonto=honor*(totalDesc/100);
+  honor=honor-descMonto;
+  const subtotal=honor+impi;
+  const iva=subtotal*0.16;
+  const total=subtotal+iva;
+  el.innerHTML=`<div class="sim-result-card"><h4>Estimación · ${esc(base.nombre)}</h4>
+    <div class="sim-fee-row"><span>Honorarios profesionales</span><span>${fmtMXN(base.honorarios)}</span></div>
+    ${clases>0?`<div class="sim-fee-row"><span>${clases} clase${clases!==1?'s':''} adicional${clases!==1?'es':''}</span><span>${fmtMXN(clases*claseHonor)}</span></div>`:''}
+    ${totalDesc>0?`<div class="sim-fee-row" style="color:var(--red)"><span>Descuento (${totalDesc}%)</span><span>-${fmtMXN(descMonto)}</span></div>`:''}
+    <div class="sim-fee-row"><span>Honorarios netos</span><span>${fmtMXN(honor)}</span></div>
+    <div class="sim-fee-row"><span>Derechos IMPI (aprox.)</span><span>${fmtMXN(impi)}</span></div>
+    <div class="sim-fee-row"><span>IVA (16%)</span><span>${fmtMXN(iva)}</span></div>
+    <div class="sim-fee-row"><span>TOTAL ESTIMADO</span><span>${fmtMXN(total)}</span></div>
+  </div><div class="hint">* Estimación referencial. Los derechos IMPI son aproximados y sujetos a cambio. IVA aplicable a honorarios profesionales.</div>`;
+}
+
+/* ══════════ MOSTRAR / OCULTAR AJUSTES DE TARIFA ══════════ */
+let tarifasVisibles=localStorage.getItem('dopi_sim_tarifas_visibles')!=='oculto';
+function aplicarVisibilidadTarifas(){
+  document.getElementById('tarifas-body').style.display=tarifasVisibles?'':'none';
+  document.getElementById('btn-toggle-tarifas').textContent=tarifasVisibles?'🙈 Ocultar':'👁 Mostrar';
+}
+function toggleTarifasVisibles(){
+  tarifasVisibles=!tarifasVisibles;
+  localStorage.setItem('dopi_sim_tarifas_visibles',tarifasVisibles?'visible':'oculto');
+  aplicarVisibilidadTarifas();
+}
+aplicarVisibilidadTarifas();
+
+/* ══════════ INIT ══════════ */
+(async function initSimulador(){
+  await cargarTarifas();
+  renderSelectServicios();
+  renderTarifasRows();
+})();
+</script>
+</body>
+</html>
